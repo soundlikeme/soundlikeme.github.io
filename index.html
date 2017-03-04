@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>My Cover</title>
+    <link type="text/css" href="css/bootstrap.min.css"/>
+    <link type="text/css" href="css/bootstrap-grid.min.css"/>
+    <link type="text/css" href="css/bootstrap-reboot.min.css"/>
+    <link type="text/css" href="css/tether.min.css"/>
+    <style>
+        body {
+            font: 14pt Arial, sans-serif;
+            background: lightgrey;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            margin: 0 0;
+        }
+        canvas {
+            display: inline-block;
+            background: #202020;
+            width: 95%;
+            height: 45%;
+            box-shadow: 0px 0px 10px blue;
+        }
+        #controls {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            height: 20%;
+            width: 100%;
+        }
+        #record { height: 15vh; }
+        #record.recording {
+            background: red;
+            background: -webkit-radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%);
+            background: -moz-radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%);
+            background: radial-gradient(center, ellipse cover, #ff0000 0%,lightgrey 75%,lightgrey 100%,#7db9e8 100%);
+        }
+        #save, #save img { height: 10vh; }
+        #save { opacity: 0.25;}
+        #save[download] { opacity: 1;}
+        #viz {
+            height: 80%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+        }
+        @media (orientation: landscape) {
+            body { flex-direction: row;}
+            #controls { flex-direction: column; height: 100%; width: 10%;}
+            #viz { height: 100%; width: 90%;}
+        }
+
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Original Song: Hello By Adele</h3>
+                </div>
+                <div class="card-block">
+                    <div class="col-12">
+                        <audio controls>
+                            <source src="audio/adele-hello.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Current Sound Stream</h3>
+                </div>
+                <div class="card-block">
+                    <div id="viz" style="display: inline-block; padding-top: 20px;" class="col-8">
+                        <canvas id="analyser" width="2024" height="500"></canvas>
+                    </div>
+                    <div style="display: inline-block;" class="col-4">
+                        <img id="record" src="img/mic128.png" onclick="toggleRecording(this);">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Instance Plot of Sound Stream</h3>
+                </div>
+                <div class="card-block">
+                    <div id="viz" style="display: inline-block;" class="col-8">
+                        <canvas id="wavedisplay" width="2024" height="500"></canvas>
+                    </div>
+                    <div style="display: inline-block;" class="col-4">
+                        <a id="save" onclick="analyzeIt()" href="#"><img src="img/save.svg"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Original Music Spectrum</h3>
+                </div>
+                <div class="card-block">
+                    <div id="wavefC" class="col-8">
+                        <canvas id="can" height="500" width="5650"></canvas>
+                    </div>
+                    <div style="display: inline-block;" class="col-4">
+                        <a id="save" onclick="analyzeIt()" href="#"><img src="img/save.svg"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Your Music Spectrum</h3>
+                </div>
+                <div class="card-block">
+                    <div id="wavefC2" class="col-8">
+                        <canvas id="can2" height="500" width="5650"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script src="js/jquery.min.js" type="text/javascript"></script>
+<script src="js/tether.min.js" type="text/javascript"></script>
+<script src="js/bootstrap.min.js" type="text/javascript"></script>
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="js/waveform-data.js" type="text/javascript"></script>
+<script src="js/webaudio.js" type="text/javascript"></script>
+<script src="js/audiodisplay.js"></script>
+<script src="js/recorderjs/recorder.js"></script>
+<script src="js/main.js"></script>
+<script type="text/javascript">
+    var originalMusicURL = "http://localhost:63344/pFameApp/audio/adele-hello.mp3?_ijt=8j7dbjkis9isu23q4s9cjerumh";
+    var myVersionURL = originalMusicURL;
+    $(document).ready(function () {
+        showOriginalSongSpectrum(originalMusicURL,'wavefC','can');
+    });
+
+    function showOriginalSongSpectrum(url,wave,container) {
+        "use strict";
+
+        fetch(url)
+            .then(response => response.arrayBuffer())
+    .then(buffer => {
+            WaveformData.adapters.arraybuffer.fromAudioObject(buffer, (waveform) => {
+            console.log(waveform);
+        useCanvas(waveform, document.getElementById(container))
+    });
+    });
+
+        function useD3(waveform) {
+            const layout = d3.select('#'+wave).select("svg");
+            const x = d3.scale.linear();
+            const y = d3.scale.linear();
+            const offsetX = 100;
+
+            x.domain([0, waveform.adapter.length]).rangeRound([0, 1024]);
+            y.domain([d3.min(waveform.min), d3.max(waveform.max)]).rangeRound([offsetX, -offsetX]);
+
+            var area = d3.svg.area()
+                    .x((d, i) => x(i))
+        .y0((d, i) => y(waveform.min[i]))
+        .y1((d, i) => y(d));
+
+            layout.select("path")
+                .datum(waveform.max)
+                .attr("transform", () => "translate(0, ${offsetX})")
+        .attr("d", area);
+        }
+
+
+        function useCanvas(waveform,canvas) {
+            const interpolateHeight = (total_height) => {
+                const amplitude = 256;
+                return (size) => total_height - ((size + 128) * total_height) / amplitude;
+            };
+
+            const y = interpolateHeight(canvas.height);
+            const ctx = canvas.getContext("2d");
+            ctx.beginPath();
+
+// from 0 to 100
+            waveform.min.forEach((val, x) => ctx.lineTo(x + 0.5, y(val) + 0.5));
+
+// then looping back from 100 to 0
+            waveform.max.reverse().forEach((val, x) => {
+                ctx.lineTo((waveform.offset_length - x) + 0.5, y(val) + 0.5);
+        });
+
+            ctx.closePath();
+            var gradient=ctx.createLinearGradient(0,0,170,0);
+            gradient.addColorStop("0","magenta");
+            gradient.addColorStop("0.5","blue");
+            gradient.addColorStop("1.0","red");
+
+// Fill with gradient
+            ctx.strokeStyle=gradient;
+            ctx.lineWidth=3;
+            ctx.stroke();
+        }
+    }
+
+    function analyzeIt() {
+        console.log("IT is:: ",myVersionURL);
+        showOriginalSongSpectrum(myVersionURL,'wavefC2','can2');
+    }
+</script>
+</body>
+</html>
