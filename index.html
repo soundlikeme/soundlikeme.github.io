@@ -167,6 +167,7 @@
         fetch(url)
             .then(response => response.arrayBuffer())
     .then(buffer => {
+        console.log("Buffer data: ",buffer);
             WaveformData.adapters.arraybuffer.fromAudioObject(buffer, (waveform) => {
             console.log(waveform);
         useCanvas(waveform, document.getElementById(container))
