@@ -60,6 +60,69 @@
 </head>
 <body>
 <div class="container">
+    <section class="section section--tuner">
+        <div class="container">
+            <h2 class="visually-hidden">Tuner</h2>
+            <div class="section__body tuner__body">
+                <div class="layout layout--basic">
+                    <div class="module module--secondary">
+                        <div class="tuner__gauge-wrap">
+                            <div class="tuner__values clear">
+                                <div class="tuner__value">
+                                    <h5>Pitch</h5>
+                                    <span class="subtitle" id="pitch">-- Hz</span>
+                                </div>
+                                <div class="tuner__value">
+                                    <h5>Cents</h5>
+                                    <span class="subtitle" id="cents"></span>
+                                </div>
+                                <div class="tuner__value">
+                                    <h5>Note</h5>
+                                    <span class="subtitle" id="note">--</span>
+                                </div>
+                            </div>
+                            <canvas class="tuner__gauge" id="gaugeCanvas"></canvas>
+                        </div>
+                    </div>
+                    <div class="module module--primary">
+                        <p class="alert--error tuner__alert" id="errorMessage"></p>
+                        <div class="tuner__controls">
+                            <h3 class="subtitle">Tune using:</h3>
+                            <div class="actions">
+                                <button class="button tuner__input-button" id="micButton">Microphone</button>
+                                <button class="button tuner__input-button" id="refButton">Reference tone</button>
+                            </div>
+                            <div id="microphoneOptions" class="tuner__options">
+                                <fieldset>
+                                    <legend id="micBaseFreq" class="subtitle">Base frequency</legend>
+                                    <div class="actions">
+                                        <button id="micDecreaseBaseFreqButton" class="button tuner__options__button minusFreq" aria-label="decrease" aria-labelledby="micDecreaseBaseFreqButton micButton micBaseFreq">-</button>
+                                        <button id="micIncreaseBaseFreqButton" class="button tuner__options__button plusFreq" aria-label="increase" aria-labelledby="micIncreaseBaseFreqButton micButton micBaseFreq">+</button>
+                                    </div>
+                                </fieldset>
+                            </div>
+                            <div id="referenceOptions" class="tuner__options">
+                                <fieldset>
+                                    <legend id="refBaseFreq" class="subtitle">Base frequency</legend>
+                                    <div class="actions">
+                                        <button id="refDecreaseBaseFreqButton" class="button tuner__options__button minusFreq" aria-label="decrease" aria-labelledby="refDecreaseBaseFreqButton refButton refBaseFreq">-</button>
+                                        <button id="refIncreaseBaseFreqButton" class="button tuner__options__button plusFreq" aria-label="increase" aria-labelledby="refIncreaseBaseFreqButton refButton refBaseFreq">+</button>
+                                    </div>
+                                </fieldset>
+                                <fieldset>
+                                    <legend id="refNote" class="subtitle">Note</legend>
+                                    <div class="actions">
+                                        <button id="refDecreaseNoteButton" class="button tuner__options__button" aria-label="decrease" aria-labelledby="refDecreaseNoteButton refButton refNote">-</button>
+                                        <button id="refIncreaseNoteButton" class="button tuner__options__button" aria-label="increase" aria-labelledby="refIncreaseNoteButton refButton refNote">+</button>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
     <div class="row">
         <div class="col-12">
             <div class="card">
@@ -149,6 +212,9 @@
 <script src="js/tether.min.js" type="text/javascript"></script>
 <script src="js/bootstrap.min.js" type="text/javascript"></script>
 <script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="js/demo.js"></script>
+<script src="https://bernii.github.io/gauge.js/dist/gauge.min.js"></script>
+<script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 <script src="js/waveform-data.js" type="text/javascript"></script>
 <script src="js/webaudio.js" type="text/javascript"></script>
 <script src="js/audiodisplay.js"></script>
@@ -167,7 +233,7 @@
         fetch(url)
             .then(response => response.arrayBuffer())
     .then(buffer => {
-        console.log("Buffer data: ",buffer);
+        console.log("Buffer data: ",new DataView(buffer));
             WaveformData.adapters.arraybuffer.fromAudioObject(buffer, (waveform) => {
             console.log(waveform);
         useCanvas(waveform, document.getElementById(container))
